@@ -109,7 +109,7 @@ export default function PersistentDrawerLeft() {
     setMessages([
       ...messages,
       {
-        message: message,
+        message: message.trim(),
         user: "Johnrey",
         date: new Date(),
       },
@@ -174,57 +174,66 @@ export default function PersistentDrawerLeft() {
       </Drawer>
       <Main open={open}>
         <DrawerHeader />
-        <Stack direction="column">
-          <List sx={{ width: "100%", bgcolor: "background.paper" }}>
-            {messages.map((message, index) => (
-              <ListItem key={index} alignItems="flex-start">
-                <ListItemAvatar>
-                  <Avatar alt={message.user} />
-                </ListItemAvatar>
-                <ListItemText
-                  primary={message.message}
-                  secondary={
-                    <React.Fragment>
-                      <Typography
-                        sx={{ display: "inline" }}
-                        component="span"
-                        variant="body2"
-                        color="text.primary"
-                      >
-                        {message.user}
-                      </Typography>
-                      {` — ${message.date.toLocaleString()}`}
-                    </React.Fragment>
-                  }
-                />
-              </ListItem>
-            ))}
-          </List>
-          <Stack
-            direction="row"
-            spacing={2}
-            justifyContent="stretch"
-            alignItems="center"
-          >
-            <TextField
-              id="message"
-              label="Type your message"
-              variant="standard"
-              value={message}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                setMessage(event.target.value);
-              }}
+        <List
+          sx={{
+            width: "100%",
+            height: "100%",
+            bgcolor: "background.paper",
+            overflow: "auto",
+          }}
+        >
+          {messages.map((message, index) => (
+            <ListItem key={index} alignItems="flex-start">
+              <ListItemAvatar>
+                <Avatar alt={message.user} />
+              </ListItemAvatar>
+              <ListItemText
+                primary={message.message}
+                secondary={
+                  <React.Fragment>
+                    <Typography
+                      sx={{ display: "inline" }}
+                      component="span"
+                      variant="body2"
+                      color="text.primary"
+                    >
+                      {message.user}
+                    </Typography>
+                    {` — ${message.date.toLocaleString()}`}
+                  </React.Fragment>
+                }
+              />
+            </ListItem>
+          ))}
+          <ListItem>
+            <Stack
+              direction="row"
+              spacing={2}
+              justifyContent="stretch"
+              alignItems="center"
               sx={{ width: "100%" }}
-            />
-            <Button
-              variant="contained"
-              endIcon={<SendIcon />}
-              onClick={sendMessage}
             >
-              Send
-            </Button>
-          </Stack>
-        </Stack>
+              <TextField
+                id="message"
+                label="Type your message"
+                variant="standard"
+                value={message}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                  setMessage(event.target.value);
+                }}
+                sx={{ width: "100%" }}
+              />
+              <Button
+                variant="contained"
+                endIcon={<SendIcon />}
+                onClick={sendMessage}
+                disabled={message.trim().length === 0}
+              >
+                Send
+              </Button>
+            </Stack>
+          </ListItem>
+        </List>
       </Main>
     </Box>
   );
