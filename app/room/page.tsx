@@ -79,6 +79,31 @@ const DrawerHeader = styled("div")(({ theme }) => ({
   justifyContent: "flex-end",
 }));
 
+function getWindowDimensions() {
+  const { innerWidth: width, innerHeight: height } = window;
+  return {
+    width,
+    height,
+  };
+}
+
+function useWindowDimensions() {
+  const [windowDimensions, setWindowDimensions] = React.useState(
+    getWindowDimensions()
+  );
+
+  React.useEffect(() => {
+    function handleResize() {
+      setWindowDimensions(getWindowDimensions());
+    }
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return windowDimensions;
+}
+
 export default function PersistentDrawerLeft() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
@@ -96,6 +121,11 @@ export default function PersistentDrawerLeft() {
       date: new Date(),
     },
   ]);
+
+  let { height, width } = useWindowDimensions();
+
+  height -= 128;
+  width -= 48 + (open ? 240 : 0);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -173,67 +203,70 @@ export default function PersistentDrawerLeft() {
         </List>
       </Drawer>
       <Main open={open}>
-        <DrawerHeader />
-        <List
-          sx={{
-            width: "100%",
-            height: "100%",
-            bgcolor: "background.paper",
-            overflow: "auto",
-          }}
+        <DrawerHeader id="header" />
+        <Stack
+          direction="column"
+          justifyContent="stretch"
+          sx={{ height: height, width }}
         >
-          {messages.map((message, index) => (
-            <ListItem key={index} alignItems="flex-start">
-              <ListItemAvatar>
-                <Avatar alt={message.user} />
-              </ListItemAvatar>
-              <ListItemText
-                primary={message.message}
-                secondary={
-                  <React.Fragment>
-                    <Typography
-                      sx={{ display: "inline" }}
-                      component="span"
-                      variant="body2"
-                      color="text.primary"
-                    >
-                      {message.user}
-                    </Typography>
-                    {` — ${message.date.toLocaleString()}`}
-                  </React.Fragment>
-                }
-              />
-            </ListItem>
-          ))}
-          <ListItem>
-            <Stack
-              direction="row"
-              spacing={2}
-              justifyContent="stretch"
-              alignItems="center"
+          <List
+            sx={{
+              bgcolor: "background.paper",
+              flexGrow: "1",
+              overflow: "auto",
+            }}
+          >
+            {messages.map((message, index) => (
+              <ListItem key={index} alignItems="flex-start">
+                <ListItemAvatar>
+                  <Avatar alt={message.user} />
+                </ListItemAvatar>
+                <ListItemText
+                  primary={message.message}
+                  secondary={
+                    <React.Fragment>
+                      <Typography
+                        sx={{ display: "inline" }}
+                        component="span"
+                        variant="body2"
+                        color="text.primary"
+                      >
+                        {message.user}
+                      </Typography>
+                      {` — ${message.date.toLocaleString()}`}
+                    </React.Fragment>
+                  }
+                />
+              </ListItem>
+            ))}
+          </List>
+          <Stack
+            direction="row"
+            spacing={2}
+            justifyContent="stretch"
+            alignItems="center"
+            sx={{ width }}
+          >
+            <TextField
+              id="message"
+              label="Type your message"
+              variant="standard"
+              value={message}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                setMessage(event.target.value);
+              }}
               sx={{ width: "100%" }}
+            />
+            <Button
+              variant="contained"
+              endIcon={<SendIcon />}
+              onClick={sendMessage}
+              disabled={message.trim().length === 0}
             >
-              <TextField
-                id="message"
-                label="Type your message"
-                variant="standard"
-                value={message}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                  setMessage(event.target.value);
-                }}
-                sx={{ width: "100%" }}
-              />
-              <Button
-                variant="contained"
-                endIcon={<SendIcon />}
-                onClick={sendMessage}
-                disabled={message.trim().length === 0}
-              >
-                Send
-              </Button>
-            </Stack>
-          </ListItem>
-        </List>
+              Send
+            </Button>
+          </Stack>
+        </Stack>
       </Main>
     </Box>
   );
