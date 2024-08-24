@@ -83,6 +83,19 @@ export default function PersistentDrawerLeft() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
   const [rooms, setRooms] = React.useState(["1", "2", "3"]);
+  const [message, setMessage] = React.useState("");
+  const [messages, setMessages] = React.useState([
+    {
+      user: "Johnrey",
+      message: "Hello, world",
+      date: new Date(),
+    },
+    {
+      user: "World",
+      message: "Hello, johnrey",
+      date: new Date(),
+    },
+  ]);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -90,6 +103,18 @@ export default function PersistentDrawerLeft() {
 
   const handleDrawerClose = () => {
     setOpen(false);
+  };
+
+  const sendMessage = () => {
+    setMessages([
+      ...messages,
+      {
+        message: message,
+        user: "Johnrey",
+        date: new Date(),
+      },
+    ]);
+    setMessage("");
   };
 
   return (
@@ -150,82 +175,52 @@ export default function PersistentDrawerLeft() {
       <Main open={open}>
         <DrawerHeader />
         <Stack direction="column">
-          <List
-            sx={{ width: "100%", maxWidth: 360, bgcolor: "background.paper" }}
-          >
-            <ListItem alignItems="flex-start">
-              <ListItemAvatar>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-              </ListItemAvatar>
-              <ListItemText
-                primary="Brunch this weekend?"
-                secondary={
-                  <React.Fragment>
-                    <Typography
-                      sx={{ display: "inline" }}
-                      component="span"
-                      variant="body2"
-                      color="text.primary"
-                    >
-                      Ali Connors
-                    </Typography>
-                    {" — I'll be in your neighborhood doing errands this…"}
-                  </React.Fragment>
-                }
-              />
-            </ListItem>
-            <Divider variant="inset" component="li" />
-            <ListItem alignItems="flex-start">
-              <ListItemAvatar>
-                <Avatar alt="Travis Howard" src="/static/images/avatar/2.jpg" />
-              </ListItemAvatar>
-              <ListItemText
-                primary="Summer BBQ"
-                secondary={
-                  <React.Fragment>
-                    <Typography
-                      sx={{ display: "inline" }}
-                      component="span"
-                      variant="body2"
-                      color="text.primary"
-                    >
-                      to Scott, Alex, Jennifer
-                    </Typography>
-                    {" — Wish I could come, but I'm out of town this…"}
-                  </React.Fragment>
-                }
-              />
-            </ListItem>
-            <Divider variant="inset" component="li" />
-            <ListItem alignItems="flex-start">
-              <ListItemAvatar>
-                <Avatar alt="Cindy Baker" src="/static/images/avatar/3.jpg" />
-              </ListItemAvatar>
-              <ListItemText
-                primary="Oui Oui"
-                secondary={
-                  <React.Fragment>
-                    <Typography
-                      sx={{ display: "inline" }}
-                      component="span"
-                      variant="body2"
-                      color="text.primary"
-                    >
-                      Sandra Adams
-                    </Typography>
-                    {" — Do you have Paris recommendations? Have you ever…"}
-                  </React.Fragment>
-                }
-              />
-            </ListItem>
+          <List sx={{ width: "100%", bgcolor: "background.paper" }}>
+            {messages.map((message, index) => (
+              <ListItem key={index} alignItems="flex-start">
+                <ListItemAvatar>
+                  <Avatar alt={message.user} />
+                </ListItemAvatar>
+                <ListItemText
+                  primary={message.message}
+                  secondary={
+                    <React.Fragment>
+                      <Typography
+                        sx={{ display: "inline" }}
+                        component="span"
+                        variant="body2"
+                        color="text.primary"
+                      >
+                        {message.user}
+                      </Typography>
+                      {` — ${message.date.toLocaleString()}`}
+                    </React.Fragment>
+                  }
+                />
+              </ListItem>
+            ))}
           </List>
-          <Stack direction="row" spacing={2}>
+          <Stack
+            direction="row"
+            spacing={2}
+            justifyContent="stretch"
+            alignItems="center"
+          >
             <TextField
               id="message"
               label="Type your message"
               variant="standard"
+              value={message}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                setMessage(event.target.value);
+              }}
+              sx={{ width: "100%" }}
             />
-            <Button variant="contained" endIcon={<SendIcon />}>
+            <Button
+              variant="contained"
+              endIcon={<SendIcon />}
+              onClick={sendMessage}
+            >
               Send
             </Button>
           </Stack>
