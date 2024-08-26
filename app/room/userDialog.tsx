@@ -1,11 +1,3 @@
-import {
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-} from "@mui/material";
-
-import AddIcon from "@mui/icons-material/Add";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -15,15 +7,10 @@ import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
 import * as React from "react";
 
-export default function RoomDialog(props: {
-  onSubmit: (arg0: React.FormEvent<HTMLFormElement>) => void;
-  isConnected: boolean;
+export default function UserDialog(props: {
+  onSubmit: (username: string) => void;
 }) {
-  const [open, setOpen] = React.useState(false);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
+  const [open, setOpen] = React.useState(true);
 
   const handleClose = () => {
     setOpen(false);
@@ -31,44 +18,42 @@ export default function RoomDialog(props: {
 
   return (
     <React.Fragment>
-      <ListItem disablePadding>
-        <ListItemButton onClick={handleClickOpen} disabled={!props.isConnected}>
-          <ListItemIcon>
-            <AddIcon />
-          </ListItemIcon>
-          <ListItemText primary="Add room" />
-        </ListItemButton>
-      </ListItem>
       <Dialog
         open={open}
-        onClose={handleClose}
+        onClose={(_, reason) => {
+          if (reason && reason === "backdropClick") return;
+          handleClose();
+        }}
         PaperProps={{
           component: "form",
           onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
-            props.onSubmit(event);
+            event.preventDefault();
+            const formData = new FormData(event.currentTarget);
+            const formJson = Object.fromEntries((formData as any).entries());
+            const username = formJson.username;
+            props.onSubmit(username);
             handleClose();
           },
         }}
       >
-        <DialogTitle>Add room</DialogTitle>
+        <DialogTitle>Hello, there :)</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Enter the room name you want to join
+            What would you like to be called?
           </DialogContentText>
           <TextField
             autoFocus
             required
             margin="dense"
-            id="roomName"
-            name="roomName"
-            label="Room Name"
+            id="username"
+            name="username"
+            label="Username"
             variant="standard"
             fullWidth
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button type="submit">Enter</Button>
+          <Button type="submit">Let&apos;s Go!</Button>
         </DialogActions>
       </Dialog>
     </React.Fragment>

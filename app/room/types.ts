@@ -1,6 +1,7 @@
 export interface Message {
   message: string;
-  user: string;
+  socketId: string;
+  username: string;
   date: Date;
 }
 

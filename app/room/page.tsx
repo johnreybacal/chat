@@ -29,7 +29,8 @@ import Typography from "@mui/material/Typography";
 import * as React from "react";
 import { socket } from "../../src/socket";
 import RoomDialog from "./roomDialog";
-import { Room } from "./types";
+import { Message, Room } from "./types";
+import UserDialog from "./userDialog";
 
 const drawerWidth = 240;
 
@@ -110,6 +111,7 @@ function useWindowDimensions() {
 export default function Page() {
   const theme = useTheme();
   const [receiptCounter, setReceiptCounter] = React.useState(0);
+  const [username, setUsername] = React.useState("");
   const [isConnected, setIsConnected] = React.useState(socket.connected);
 
   const [open, setOpen] = React.useState(true);
@@ -145,6 +147,12 @@ export default function Page() {
     socket.emit("joinRoom", roomName);
   };
 
+  const startSession = (username: string) => {
+    socket.auth = { username };
+    socket.connect();
+    setUsername(username);
+  };
+
   const scrollRef = React.useRef<null | HTMLLIElement>(null);
   React.useEffect(() => {
     if (scrollRef.current) {
@@ -170,10 +178,7 @@ export default function Page() {
     };
   }, []);
   React.useEffect(() => {
-    function distributeMessage(
-      roomName: string,
-      message: { user: string; message: string; date: Date }
-    ) {
+    function distributeMessage(roomName: string, message: Message) {
       rooms.find((room) => room.name === roomName)?.messages.push(message);
       setRooms(rooms);
       setReceiptCounter(receiptCounter + 1);
@@ -188,6 +193,7 @@ export default function Page() {
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
+      <UserDialog onSubmit={startSession} />
       <AppBar position="fixed" open={open}>
         <Toolbar>
           <IconButton
@@ -199,9 +205,10 @@ export default function Page() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             {currentRoom?.name}
           </Typography>
+          <Typography>{isConnected ? "Connected" : "Not Connected"}</Typography>
         </Toolbar>
       </AppBar>
       <Drawer
@@ -230,6 +237,7 @@ export default function Page() {
         <Divider />
         <List>
           <RoomDialog
+            isConnected={isConnected}
             onSubmit={(event: React.FormEvent<HTMLFormElement>) => {
               event.preventDefault();
               const formData = new FormData(event.currentTarget);
@@ -272,7 +280,7 @@ export default function Page() {
               {currentRoom?.messages.map((message, index) => (
                 <ListItem key={index} alignItems="flex-start">
                   <ListItemAvatar>
-                    <Avatar alt={message.user} />
+                    <Avatar alt={message.username} />
                   </ListItemAvatar>
                   <ListItemText
                     primary={message.message}
@@ -284,7 +292,7 @@ export default function Page() {
                           variant="body2"
                           color="text.primary"
                         >
-                          {message.user}
+                          {message.username}
                         </Typography>
                         {` — ${message.date.toLocaleString()}`}
                       </React.Fragment>
@@ -310,7 +318,7 @@ export default function Page() {
                   setMessage(event.target.value);
                 }}
                 onKeyDown={(event) => {
-                  if (event.key === "Enter") {
+                  if (event.key === "Enter" && isConnected) {
                     sendMessage();
                   }
                 }}
@@ -320,7 +328,7 @@ export default function Page() {
                 variant="contained"
                 endIcon={<SendIcon />}
                 onClick={sendMessage}
-                disabled={message.trim().length === 0}
+                disabled={message.trim().length === 0 || !isConnected}
               >
                 Send
               </Button>
