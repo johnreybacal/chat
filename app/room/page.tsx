@@ -172,7 +172,7 @@ export default function PersistentDrawerLeft() {
     setMessage("");
   };
 
-  const scrollRef = React.useRef<null | HTMLElement>(null);
+  const scrollRef = React.useRef<null | HTMLLIElement>(null);
   React.useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
