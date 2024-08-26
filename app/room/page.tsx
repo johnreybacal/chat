@@ -255,6 +255,11 @@ export default function PersistentDrawerLeft() {
               onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                 setMessage(event.target.value);
               }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  sendMessage();
+                }
+              }}
               sx={{ width: "100%" }}
             />
             <Button
