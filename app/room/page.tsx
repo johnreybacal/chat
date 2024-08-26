@@ -27,6 +27,7 @@ import { styled, useTheme } from "@mui/material/styles";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
+import RoomDialog from "./roomDialog";
 
 const drawerWidth = 240;
 
@@ -172,6 +173,16 @@ export default function Page() {
     setMessage("");
   };
 
+  const addRoom = (roomNumber: string) => {
+    setRooms([
+      ...rooms,
+      {
+        name: roomNumber,
+        messages: [],
+      },
+    ]);
+  };
+
   const scrollRef = React.useRef<null | HTMLLIElement>(null);
   React.useEffect(() => {
     if (scrollRef.current) {
@@ -223,6 +234,15 @@ export default function Page() {
         </DrawerHeader>
         <Divider />
         <List>
+          <RoomDialog
+            onSubmit={(event: React.FormEvent<HTMLFormElement>) => {
+              event.preventDefault();
+              const formData = new FormData(event.currentTarget);
+              const formJson = Object.fromEntries((formData as any).entries());
+              const roomNumber = formJson.roomNumber;
+              addRoom(roomNumber);
+            }}
+          />
           {rooms.map((room) => (
             <ListItem key={room.name} disablePadding>
               <ListItemButton
