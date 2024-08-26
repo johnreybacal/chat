@@ -168,12 +168,16 @@ export default function PersistentDrawerLeft() {
       message,
       date: new Date(),
     });
+    scroll();
     setMessage("");
   };
 
-  const changeRoom = (room: typeof currentRoom) => {
-    setCurrentRoom(room);
-  };
+  const scrollRef = React.useRef<null | HTMLElement>(null);
+  React.useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [currentRoom, currentRoom?.messages.length]);
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -272,6 +276,7 @@ export default function PersistentDrawerLeft() {
                 />
               </ListItem>
             ))}
+            <ListItem ref={scrollRef} />
           </List>
           <Stack
             direction="row"
