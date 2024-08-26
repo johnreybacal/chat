@@ -153,6 +153,10 @@ export default function Page() {
     setUsername(username);
   };
 
+  const isUsersMessage = (message: Message) => {
+    return socket.id === message.socketId;
+  };
+
   const scrollRef = React.useRef<null | HTMLLIElement>(null);
   React.useEffect(() => {
     if (scrollRef.current) {
@@ -278,23 +282,42 @@ export default function Page() {
               }}
             >
               {currentRoom?.messages.map((message, index) => (
-                <ListItem key={index} alignItems="flex-start">
+                <ListItem
+                  key={index}
+                  sx={{
+                    flexDirection: isUsersMessage(message)
+                      ? "row-reverse"
+                      : "row",
+                  }}
+                >
                   <ListItemAvatar>
                     <Avatar alt={message.username} />
                   </ListItemAvatar>
                   <ListItemText
+                    sx={
+                      isUsersMessage(message)
+                        ? {
+                            textAlign: "right",
+                            paddingRight: 2,
+                          }
+                        : {}
+                    }
                     primary={message.message}
                     secondary={
                       <React.Fragment>
                         <Typography
-                          sx={{ display: "inline" }}
+                          sx={{
+                            display: isUsersMessage(message)
+                              ? "none"
+                              : "inline",
+                          }}
                           component="span"
                           variant="body2"
                           color="text.primary"
                         >
-                          {message.username}
+                          {message.username} —
                         </Typography>
-                        {` — ${message.date.toLocaleString()}`}
+                        {message.date.toLocaleString()}
                       </React.Fragment>
                     }
                   />
