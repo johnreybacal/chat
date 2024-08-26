@@ -7,6 +7,7 @@ import SendIcon from "@mui/icons-material/Send";
 import {
   Avatar,
   Button,
+  Container,
   ListItemAvatar,
   Stack,
   TextField,
@@ -255,75 +256,82 @@ export default function Page() {
       </Drawer>
       <Main open={open}>
         <DrawerHeader id="header" />
-        <Stack
-          direction="column"
-          justifyContent="stretch"
-          sx={{ height: height, width }}
-        >
-          <List
-            sx={{
-              bgcolor: "background.paper",
-              flexGrow: "1",
-              overflow: "auto",
-            }}
-          >
-            {currentRoom?.messages.map((message, index) => (
-              <ListItem key={index} alignItems="flex-start">
-                <ListItemAvatar>
-                  <Avatar alt={message.user} />
-                </ListItemAvatar>
-                <ListItemText
-                  primary={message.message}
-                  secondary={
-                    <React.Fragment>
-                      <Typography
-                        sx={{ display: "inline" }}
-                        component="span"
-                        variant="body2"
-                        color="text.primary"
-                      >
-                        {message.user}
-                      </Typography>
-                      {` — ${message.date.toLocaleString()}`}
-                    </React.Fragment>
-                  }
-                />
-              </ListItem>
-            ))}
-            <ListItem ref={scrollRef} />
-          </List>
+        {currentRoom && (
           <Stack
-            direction="row"
-            spacing={2}
+            direction="column"
             justifyContent="stretch"
-            alignItems="center"
-            sx={{ width }}
+            sx={{ height: height, width }}
           >
-            <TextField
-              id="message"
-              label="Type your message"
-              variant="standard"
-              value={message}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                setMessage(event.target.value);
+            <List
+              sx={{
+                bgcolor: "background.paper",
+                flexGrow: "1",
+                overflow: "auto",
               }}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  sendMessage();
-                }
-              }}
-              sx={{ width: "100%" }}
-            />
-            <Button
-              variant="contained"
-              endIcon={<SendIcon />}
-              onClick={sendMessage}
-              disabled={message.trim().length === 0}
             >
-              Send
-            </Button>
+              {currentRoom?.messages.map((message, index) => (
+                <ListItem key={index} alignItems="flex-start">
+                  <ListItemAvatar>
+                    <Avatar alt={message.user} />
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={message.message}
+                    secondary={
+                      <React.Fragment>
+                        <Typography
+                          sx={{ display: "inline" }}
+                          component="span"
+                          variant="body2"
+                          color="text.primary"
+                        >
+                          {message.user}
+                        </Typography>
+                        {` — ${message.date.toLocaleString()}`}
+                      </React.Fragment>
+                    }
+                  />
+                </ListItem>
+              ))}
+              <ListItem ref={scrollRef} />
+            </List>
+            <Stack
+              direction="row"
+              spacing={2}
+              justifyContent="stretch"
+              alignItems="center"
+              sx={{ width }}
+            >
+              <TextField
+                id="message"
+                label="Type your message"
+                variant="standard"
+                value={message}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                  setMessage(event.target.value);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    sendMessage();
+                  }
+                }}
+                sx={{ width: "100%" }}
+              />
+              <Button
+                variant="contained"
+                endIcon={<SendIcon />}
+                onClick={sendMessage}
+                disabled={message.trim().length === 0}
+              >
+                Send
+              </Button>
+            </Stack>
           </Stack>
-        </Stack>
+        )}
+        {!currentRoom && (
+          <Container>
+            <Typography>Join a room to start chatting :)</Typography>
+          </Container>
+        )}
       </Main>
     </Box>
   );
