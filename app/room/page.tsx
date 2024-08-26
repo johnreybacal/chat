@@ -86,11 +86,13 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 }));
 
 function getWindowDimensions() {
-  const { innerWidth: width, innerHeight: height } = window;
-  return {
-    width,
-    height,
-  };
+  if (typeof window !== "undefined") {
+    const { innerWidth: width, innerHeight: height } = window;
+    return {
+      width,
+      height,
+    };
+  }
 }
 
 function useWindowDimensions() {
