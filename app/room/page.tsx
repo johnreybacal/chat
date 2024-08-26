@@ -1,5 +1,4 @@
 "use client";
-
 import ChatBubbleIcon from "@mui/icons-material/ChatBubble";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -27,7 +26,9 @@ import { styled, useTheme } from "@mui/material/styles";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
+import { socket } from "../../src/socket";
 import RoomDialog from "./roomDialog";
+import { Room } from "./types";
 
 const drawerWidth = 240;
 
@@ -107,47 +108,12 @@ function useWindowDimensions() {
 
 export default function Page() {
   const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
-  const [rooms, setRooms] = React.useState([
-    {
-      name: "World",
-      messages: [
-        {
-          user: "Johnrey",
-          message: "Hello, world",
-          date: new Date(),
-        },
-        {
-          user: "World",
-          message: "Hello, johnrey",
-          date: new Date(),
-        },
-      ],
-    },
-    {
-      name: "Group",
-      messages: [
-        {
-          user: "P1",
-          message: "It's a me",
-          date: new Date(),
-        },
-        {
-          user: "P2",
-          message: "HEYY",
-          date: new Date(),
-        },
-        {
-          user: "P3",
-          message: "Oi, mate!",
-          date: new Date(),
-        },
-      ],
-    },
-  ]);
-  const [currentRoom, setCurrentRoom] = React.useState(
-    rooms.find((room) => room.name === "World")
-  );
+  const [receiptCounter, setReceiptCounter] = React.useState(0);
+  const [isConnected, setIsConnected] = React.useState(socket.connected);
+
+  const [open, setOpen] = React.useState(true);
+  const [rooms, setRooms] = React.useState<Room[]>([]);
+  const [currentRoom, setCurrentRoom] = React.useState<Room>();
   const [message, setMessage] = React.useState("");
 
   let { height, width } = useWindowDimensions();
@@ -164,23 +130,18 @@ export default function Page() {
   };
 
   const sendMessage = () => {
-    currentRoom?.messages.push({
-      user: "Johnrey",
-      message,
-      date: new Date(),
-    });
-    scroll();
+    socket.emit("sendMessage", currentRoom?.name, message);
     setMessage("");
   };
 
-  const addRoom = (roomNumber: string) => {
-    setRooms([
-      ...rooms,
-      {
-        name: roomNumber,
-        messages: [],
-      },
-    ]);
+  const addRoom = (roomName: string) => {
+    const room: Room = {
+      name: roomName,
+      messages: [],
+    };
+    setRooms([...rooms, room]);
+    setCurrentRoom(room);
+    socket.emit("joinRoom", roomName);
   };
 
   const scrollRef = React.useRef<null | HTMLLIElement>(null);
@@ -189,6 +150,39 @@ export default function Page() {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [currentRoom, currentRoom?.messages.length]);
+
+  React.useEffect(() => {
+    function onConnect() {
+      setIsConnected(true);
+    }
+
+    function onDisconnect() {
+      setIsConnected(false);
+    }
+
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+    };
+  }, []);
+  React.useEffect(() => {
+    function distributeMessage(
+      roomName: string,
+      message: { user: string; message: string; date: Date }
+    ) {
+      rooms.find((room) => room.name === roomName)?.messages.push(message);
+      setRooms(rooms);
+      setReceiptCounter(receiptCounter + 1);
+    }
+    socket.on("distributeMessage", distributeMessage);
+
+    return () => {
+      socket.off("distributeMessage", distributeMessage);
+    };
+  }, [rooms, receiptCounter]);
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -223,7 +217,7 @@ export default function Page() {
         open={open}
       >
         <DrawerHeader>
-          <Typography>Chat Rooms</Typography>
+          <Typography>Chat rooms</Typography>
           <IconButton onClick={handleDrawerClose}>
             {theme.direction === "ltr" ? (
               <ChevronLeftIcon />
@@ -239,8 +233,8 @@ export default function Page() {
               event.preventDefault();
               const formData = new FormData(event.currentTarget);
               const formJson = Object.fromEntries((formData as any).entries());
-              const roomNumber = formJson.roomNumber;
-              addRoom(roomNumber);
+              const roomName = formJson.roomName;
+              addRoom(roomName);
             }}
           />
           {rooms.map((room) => (

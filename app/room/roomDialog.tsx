@@ -52,15 +52,15 @@ export default function RoomDialog(props: {
         <DialogTitle>Add room</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Enter the room number you want to join
+            Enter the room name you want to join
           </DialogContentText>
           <TextField
             autoFocus
             required
             margin="dense"
-            id="roomNumber"
-            name="roomNumber"
-            label="Room Number"
+            id="roomName"
+            name="roomName"
+            label="Room Name"
             variant="standard"
             fullWidth
           />
