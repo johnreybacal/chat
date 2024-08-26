@@ -1,4 +1,6 @@
 "use client";
+import { minidenticon } from "minidenticons";
+
 import ChatBubbleIcon from "@mui/icons-material/ChatBubble";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -291,7 +293,12 @@ export default function Page() {
                   }}
                 >
                   <ListItemAvatar>
-                    <Avatar alt={message.username} />
+                    <Avatar
+                      alt={message.username}
+                      src={`data:image/svg+xml;utf8,${encodeURIComponent(
+                        minidenticon(message.socketId)
+                      )}`}
+                    />
                   </ListItemAvatar>
                   <ListItemText
                     sx={
