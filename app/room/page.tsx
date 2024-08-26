@@ -107,20 +107,47 @@ function useWindowDimensions() {
 export default function PersistentDrawerLeft() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
-  const [rooms, setRooms] = React.useState(["1", "2", "3"]);
-  const [message, setMessage] = React.useState("");
-  const [messages, setMessages] = React.useState([
+  const [rooms, setRooms] = React.useState([
     {
-      user: "Johnrey",
-      message: "Hello, world",
-      date: new Date(),
+      name: "World",
+      messages: [
+        {
+          user: "Johnrey",
+          message: "Hello, world",
+          date: new Date(),
+        },
+        {
+          user: "World",
+          message: "Hello, johnrey",
+          date: new Date(),
+        },
+      ],
     },
     {
-      user: "World",
-      message: "Hello, johnrey",
-      date: new Date(),
+      name: "Group",
+      messages: [
+        {
+          user: "P1",
+          message: "It's a me",
+          date: new Date(),
+        },
+        {
+          user: "P2",
+          message: "HEYY",
+          date: new Date(),
+        },
+        {
+          user: "P3",
+          message: "Oi, mate!",
+          date: new Date(),
+        },
+      ],
     },
   ]);
+  const [currentRoom, setCurrentRoom] = React.useState(
+    rooms.find((room) => room.name === "World")
+  );
+  const [message, setMessage] = React.useState("");
 
   let { height, width } = useWindowDimensions();
 
@@ -136,15 +163,16 @@ export default function PersistentDrawerLeft() {
   };
 
   const sendMessage = () => {
-    setMessages([
-      ...messages,
-      {
-        message: message.trim(),
-        user: "Johnrey",
-        date: new Date(),
-      },
-    ]);
+    currentRoom?.messages.push({
+      user: "Johnrey",
+      message,
+      date: new Date(),
+    });
     setMessage("");
+  };
+
+  const changeRoom = (room: typeof currentRoom) => {
+    setCurrentRoom(room);
   };
 
   return (
@@ -190,13 +218,17 @@ export default function PersistentDrawerLeft() {
         </DrawerHeader>
         <Divider />
         <List>
-          {rooms.map((text, index) => (
-            <ListItem key={text} disablePadding>
-              <ListItemButton>
+          {rooms.map((room) => (
+            <ListItem key={room.name} disablePadding>
+              <ListItemButton
+                onClick={() => {
+                  setCurrentRoom(room);
+                }}
+              >
                 <ListItemIcon>
                   <ChatBubbleIcon />
                 </ListItemIcon>
-                <ListItemText primary={text} />
+                <ListItemText primary={room.name} />
               </ListItemButton>
             </ListItem>
           ))}
@@ -216,7 +248,7 @@ export default function PersistentDrawerLeft() {
               overflow: "auto",
             }}
           >
-            {messages.map((message, index) => (
+            {currentRoom?.messages.map((message, index) => (
               <ListItem key={index} alignItems="flex-start">
                 <ListItemAvatar>
                   <Avatar alt={message.user} />
