@@ -6,7 +6,11 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  distDir: "out"
+  distDir: "out",
+  env: {
+    SOCKET_URL: process.env.SOCKET_URL,
+  }
+
 };
 
 export default nextConfig;
