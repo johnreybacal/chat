@@ -104,7 +104,7 @@ function useWindowDimensions() {
   return windowDimensions;
 }
 
-export default function PersistentDrawerLeft() {
+export default function Page() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
   const [rooms, setRooms] = React.useState([
