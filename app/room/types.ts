@@ -13,8 +13,11 @@ export interface Message extends Event {
 export interface UserJoined extends Event {
   type: "userJoined";
 }
+export interface UserLeft extends Event {
+  type: "userLeft";
+}
 
-export type RoomEvent = Message | UserJoined;
+export type RoomEvent = Message | UserJoined | UserLeft;
 
 export interface Room {
   name: string;

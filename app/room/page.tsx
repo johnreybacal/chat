@@ -32,7 +32,7 @@ import Typography from "@mui/material/Typography";
 import * as React from "react";
 import { socket } from "../../src/socket";
 import RoomDialog from "./roomDialog";
-import { Message, Room, RoomEvent, UserJoined } from "./types";
+import { Message, Room, RoomEvent, UserJoined, UserLeft } from "./types";
 import UserDialog from "./userDialog";
 
 const drawerWidth = 240;
@@ -173,9 +173,9 @@ function MessageItem(message: Message, index: number) {
   );
 }
 
-function UserJoinedItem(event: UserJoined, index: number) {
+function UserJoinedLeftItem(event: UserJoined | UserLeft, index: number) {
   return (
-    <ListItem key="index" sx={{ justifyContent: "center" }}>
+    <ListItem key={index} sx={{ justifyContent: "center" }}>
       <Chip
         avatar={
           <Avatar
@@ -194,7 +194,7 @@ function UserJoinedItem(event: UserJoined, index: number) {
         color="text.secondary"
         sx={{ display: "inline" }}
       >
-        &nbsp;has joined the room!
+        &nbsp;has {event.type === "userJoined" ? "joined" : "left"} the room.
       </Typography>
     </ListItem>
   );
@@ -272,6 +272,7 @@ export default function Page() {
 
   React.useEffect(() => {
     function roomEvent(roomName: string, event: RoomEvent) {
+      console.log(roomName, event.type);
       rooms.find((room) => room.name === roomName)?.events.push(event);
       setRooms(rooms);
       setReceiptCounter(receiptCounter + 1);
@@ -299,7 +300,7 @@ export default function Page() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          <Typography noWrap component="div" sx={{ flexGrow: 1 }}>
             {currentRoom?.name}
           </Typography>
           <Typography>{isConnected ? "Connected" : "Not Connected"}</Typography>
@@ -374,8 +375,11 @@ export default function Page() {
               {currentRoom?.events.map((event, index) => {
                 if (event.type === "message") {
                   return MessageItem(event, index);
-                } else if (event.type === "userJoined") {
-                  return UserJoinedItem(event, index);
+                } else if (
+                  event.type === "userJoined" ||
+                  event.type === "userLeft"
+                ) {
+                  return UserJoinedLeftItem(event, index);
                 }
               })}
               <ListItem ref={scrollRef} />
