@@ -404,7 +404,7 @@ export default function Page() {
                   if (
                     event.key === "Enter" &&
                     isConnected &&
-                    message.trim().length >= 0
+                    message.trim().length > 0
                   ) {
                     sendMessage();
                   }
