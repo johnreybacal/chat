@@ -274,7 +274,6 @@ export default function Page() {
 
   React.useEffect(() => {
     function roomEvent(roomName: string, event: RoomEvent) {
-      console.log(roomName, event.type);
       rooms.find((room) => room.name === roomName)?.events.push(event);
       setRooms(rooms);
       setReceiptCounter(receiptCounter + 1);
