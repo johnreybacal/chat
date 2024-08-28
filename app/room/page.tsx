@@ -401,7 +401,11 @@ export default function Page() {
                   setMessage(event.target.value);
                 }}
                 onKeyDown={(event) => {
-                  if (event.key === "Enter" && isConnected) {
+                  if (
+                    event.key === "Enter" &&
+                    isConnected &&
+                    message.trim().length >= 0
+                  ) {
                     sendMessage();
                   }
                 }}
