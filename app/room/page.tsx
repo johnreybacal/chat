@@ -9,6 +9,7 @@ import SendIcon from "@mui/icons-material/Send";
 import {
   Avatar,
   Button,
+  Chip,
   Container,
   ListItemAvatar,
   Stack,
@@ -31,7 +32,7 @@ import Typography from "@mui/material/Typography";
 import * as React from "react";
 import { socket } from "../../src/socket";
 import RoomDialog from "./roomDialog";
-import { Message, Room } from "./types";
+import { Message, Room, RoomEvent, UserJoined } from "./types";
 import UserDialog from "./userDialog";
 
 const drawerWidth = 240;
@@ -117,6 +118,88 @@ function useWindowDimensions() {
   return windowDimensions;
 }
 
+function MessageItem(message: Message, index: number) {
+  const isUsersMessage = (message: Message) => {
+    return socket.id === message.socketId;
+  };
+  return (
+    <ListItem
+      key={index}
+      sx={{
+        flexDirection: isUsersMessage(message) ? "row-reverse" : "row",
+      }}
+    >
+      <ListItemAvatar>
+        <Avatar
+          alt={message.username}
+          src={`data:image/svg+xml;utf8,${encodeURIComponent(
+            minidenticon(message.socketId)
+          )}`}
+        />
+      </ListItemAvatar>
+      <ListItemText
+        sx={
+          isUsersMessage(message)
+            ? {
+                textAlign: "right",
+                paddingRight: 2,
+              }
+            : {}
+        }
+        primary={message.message}
+        secondary={
+          <React.Fragment>
+            <Typography
+              sx={{
+                display: isUsersMessage(message) ? "none" : "inline",
+              }}
+              component="span"
+              variant="caption"
+              color="text.primary"
+            >
+              {message.username} —&nbsp;
+            </Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "inline" }}
+            >
+              {message.date.toLocaleString()}
+            </Typography>
+          </React.Fragment>
+        }
+      />
+    </ListItem>
+  );
+}
+
+function UserJoinedItem(event: UserJoined, index: number) {
+  return (
+    <ListItem key="index" sx={{ justifyContent: "center" }}>
+      <Chip
+        avatar={
+          <Avatar
+            alt={event.username}
+            src={`data:image/svg+xml;utf8,${encodeURIComponent(
+              minidenticon(event.socketId)
+            )}`}
+          />
+        }
+        label={event.username}
+        variant="outlined"
+        size="small"
+      />
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ display: "inline" }}
+      >
+        &nbsp;has joined the room!
+      </Typography>
+    </ListItem>
+  );
+}
+
 export default function Page() {
   const theme = useTheme();
   const [receiptCounter, setReceiptCounter] = React.useState(0);
@@ -149,7 +232,7 @@ export default function Page() {
   const addRoom = (roomName: string) => {
     const room: Room = {
       name: roomName,
-      messages: [],
+      events: [],
     };
     setRooms([...rooms, room]);
     setCurrentRoom(room);
@@ -162,16 +245,12 @@ export default function Page() {
     setUsername(username);
   };
 
-  const isUsersMessage = (message: Message) => {
-    return socket.id === message.socketId;
-  };
-
   const scrollRef = React.useRef<null | HTMLLIElement>(null);
   React.useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [currentRoom, currentRoom?.messages.length]);
+  }, [currentRoom, currentRoom?.events.length]);
 
   React.useEffect(() => {
     function onConnect() {
@@ -190,16 +269,18 @@ export default function Page() {
       socket.off("disconnect", onDisconnect);
     };
   }, []);
+
   React.useEffect(() => {
-    function distributeMessage(roomName: string, message: Message) {
-      rooms.find((room) => room.name === roomName)?.messages.push(message);
+    function roomEvent(roomName: string, event: RoomEvent) {
+      rooms.find((room) => room.name === roomName)?.events.push(event);
       setRooms(rooms);
       setReceiptCounter(receiptCounter + 1);
     }
-    socket.on("distributeMessage", distributeMessage);
+
+    socket.on("roomEvent", roomEvent);
 
     return () => {
-      socket.off("distributeMessage", distributeMessage);
+      socket.off("roomEvent", roomEvent);
     };
   }, [rooms, receiptCounter]);
 
@@ -290,53 +371,13 @@ export default function Page() {
                 overflow: "auto",
               }}
             >
-              {currentRoom?.messages.map((message, index) => (
-                <ListItem
-                  key={index}
-                  sx={{
-                    flexDirection: isUsersMessage(message)
-                      ? "row-reverse"
-                      : "row",
-                  }}
-                >
-                  <ListItemAvatar>
-                    <Avatar
-                      alt={message.username}
-                      src={`data:image/svg+xml;utf8,${encodeURIComponent(
-                        minidenticon(message.socketId)
-                      )}`}
-                    />
-                  </ListItemAvatar>
-                  <ListItemText
-                    sx={
-                      isUsersMessage(message)
-                        ? {
-                            textAlign: "right",
-                            paddingRight: 2,
-                          }
-                        : {}
-                    }
-                    primary={message.message}
-                    secondary={
-                      <React.Fragment>
-                        <Typography
-                          sx={{
-                            display: isUsersMessage(message)
-                              ? "none"
-                              : "inline",
-                          }}
-                          component="span"
-                          variant="body2"
-                          color="text.primary"
-                        >
-                          {message.username} —
-                        </Typography>
-                        {message.date.toLocaleString()}
-                      </React.Fragment>
-                    }
-                  />
-                </ListItem>
-              ))}
+              {currentRoom?.events.map((event, index) => {
+                if (event.type === "message") {
+                  return MessageItem(event, index);
+                } else if (event.type === "userJoined") {
+                  return UserJoinedItem(event, index);
+                }
+              })}
               <ListItem ref={scrollRef} />
             </List>
             <Stack
