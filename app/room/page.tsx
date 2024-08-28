@@ -29,6 +29,7 @@ import ListItemText from "@mui/material/ListItemText";
 import { styled, useTheme } from "@mui/material/styles";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
+import moment from "moment";
 import * as React from "react";
 import { socket } from "../../src/socket";
 import RoomDialog from "./roomDialog";
@@ -164,7 +165,7 @@ function MessageItem(message: Message, index: number) {
               color="text.secondary"
               sx={{ display: "inline" }}
             >
-              {message.date.toLocaleString()}
+              {moment(message.date).fromNow()}
             </Typography>
           </React.Fragment>
         }
@@ -194,7 +195,8 @@ function UserJoinedLeftItem(event: UserJoined | UserLeft, index: number) {
         color="text.secondary"
         sx={{ display: "inline" }}
       >
-        &nbsp;has {event.type === "userJoined" ? "joined" : "left"} the room.
+        &nbsp;has {event.type === "userJoined" ? "joined" : "left"}{" "}
+        {moment(event.date).fromNow()}
       </Typography>
     </ListItem>
   );
