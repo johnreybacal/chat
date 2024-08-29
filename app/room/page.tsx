@@ -11,6 +11,7 @@ import {
   Button,
   Chip,
   Container,
+  LinearProgress,
   ListItemAvatar,
   Stack,
   TextField,
@@ -207,6 +208,7 @@ export default function Page() {
   const [receiptCounter, setReceiptCounter] = React.useState(0);
   const [username, setUsername] = React.useState("");
   const [isConnected, setIsConnected] = React.useState(socket.connected);
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const [open, setOpen] = React.useState(true);
   const [rooms, setRooms] = React.useState<Room[]>([]);
@@ -231,17 +233,13 @@ export default function Page() {
     setMessage("");
   };
 
-  const addRoom = (roomName: string) => {
-    const room: Room = {
-      name: roomName,
-      events: [],
-    };
-    setRooms([...rooms, room]);
-    setCurrentRoom(room);
+  const joinRoom = (roomName: string) => {
+    setIsLoading(true);
     socket.emit("joinRoom", roomName);
   };
 
   const startSession = (username: string) => {
+    setIsLoading(true);
     socket.auth = { username };
     socket.connect();
     setUsername(username);
@@ -256,6 +254,7 @@ export default function Page() {
 
   React.useEffect(() => {
     function onConnect() {
+      setIsLoading(false);
       setIsConnected(true);
     }
 
@@ -273,16 +272,28 @@ export default function Page() {
   }, []);
 
   React.useEffect(() => {
-    function roomEvent(roomName: string, event: RoomEvent) {
-      rooms.find((room) => room.name === roomName)?.events.push(event);
-      setRooms(rooms);
+    function onRoomEvent(roomName: string, event: RoomEvent) {
+      if (event.type === "userJoined" && event.socketId === socket.id) {
+        // Current user has successfully joined a room
+        const room: Room = {
+          name: roomName,
+          events: [event],
+        };
+        setRooms([...rooms, room]);
+        setCurrentRoom(room);
+        setIsLoading(false);
+      } else {
+        rooms.find((room) => room.name === roomName)?.events.push(event);
+        setRooms(rooms);
+      }
+
       setReceiptCounter(receiptCounter + 1);
     }
 
-    socket.on("roomEvent", roomEvent);
+    socket.on("roomEvent", onRoomEvent);
 
     return () => {
-      socket.off("roomEvent", roomEvent);
+      socket.off("roomEvent", onRoomEvent);
     };
   }, [rooms, receiptCounter]);
 
@@ -306,6 +317,7 @@ export default function Page() {
           </Typography>
           <Typography>{isConnected ? "Connected" : "Not Connected"}</Typography>
         </Toolbar>
+        {isLoading && <LinearProgress />}
       </AppBar>
       <Drawer
         sx={{
@@ -339,7 +351,7 @@ export default function Page() {
               const formData = new FormData(event.currentTarget);
               const formJson = Object.fromEntries((formData as any).entries());
               const roomName = formJson.roomName;
-              addRoom(roomName);
+              joinRoom(roomName);
             }}
           />
           {rooms.map((room) => (
@@ -358,8 +370,10 @@ export default function Page() {
           ))}
         </List>
       </Drawer>
+      <LinearProgress />
       <Main open={open}>
         <DrawerHeader id="header" />
+
         {currentRoom && (
           <Stack
             direction="column"
