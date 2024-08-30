@@ -17,6 +17,7 @@ import {
   TextField,
 } from "@mui/material";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
+import Badge, { BadgeProps } from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import Divider from "@mui/material/Divider";
@@ -88,6 +89,15 @@ const DrawerHeader = styled("div")(({ theme }) => ({
   justifyContent: "space-between",
 }));
 
+const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
+  "& .MuiBadge-badge": {
+    right: -3,
+    top: 13,
+    border: `2px solid ${theme.palette.background.paper}`,
+    padding: "0 4px",
+  },
+}));
+
 function getWindowDimensions() {
   if (typeof window !== "undefined") {
     const { innerWidth: width, innerHeight: height } = window;
@@ -130,6 +140,7 @@ function MessageItem(message: Message, index: number) {
       sx={{
         flexDirection: isUsersMessage(message) ? "row-reverse" : "row",
       }}
+      disablePadding
     >
       <ListItemAvatar>
         <Avatar
@@ -277,14 +288,21 @@ export default function Page() {
         // Current user has successfully joined a room
         const room: Room = {
           name: roomName,
+          unreadEvents: 0,
           events: [event],
         };
         setRooms([...rooms, room]);
         setCurrentRoom(room);
         setIsLoading(false);
       } else {
-        rooms.find((room) => room.name === roomName)?.events.push(event);
-        setRooms(rooms);
+        const room = rooms.find((room) => room.name === roomName);
+        if (room) {
+          room.events.push(event);
+          if (room !== currentRoom && event.socketId !== socket.id) {
+            room.unreadEvents++;
+          }
+          setRooms(rooms);
+        }
       }
 
       setReceiptCounter(receiptCounter + 1);
@@ -295,7 +313,7 @@ export default function Page() {
     return () => {
       socket.off("roomEvent", onRoomEvent);
     };
-  }, [rooms, receiptCounter]);
+  }, [rooms, currentRoom, receiptCounter]);
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -358,11 +376,21 @@ export default function Page() {
             <ListItem key={room.name} disablePadding>
               <ListItemButton
                 onClick={() => {
+                  room.unreadEvents = 0;
                   setCurrentRoom(room);
                 }}
               >
                 <ListItemIcon>
-                  <ChatBubbleIcon />
+                  <StyledBadge
+                    badgeContent={room.unreadEvents}
+                    color="secondary"
+                    anchorOrigin={{
+                      vertical: "top",
+                      horizontal: "right",
+                    }}
+                  >
+                    <ChatBubbleIcon />
+                  </StyledBadge>
                 </ListItemIcon>
                 <ListItemText primary={room.name} />
               </ListItemButton>
@@ -373,7 +401,6 @@ export default function Page() {
       <LinearProgress />
       <Main open={open}>
         <DrawerHeader id="header" />
-
         {currentRoom && (
           <Stack
             direction="column"

@@ -21,5 +21,6 @@ export type RoomEvent = Message | UserJoined | UserLeft;
 
 export interface Room {
   name: string;
+  unreadEvents: number;
   events: RoomEvent[];
 }
